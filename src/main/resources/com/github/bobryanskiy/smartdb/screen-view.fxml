@@ -65,7 +65,7 @@
                </image>
             </ImageView>
             <Button fx:id="chooseFolder" layoutX="10.0" layoutY="37.0" mnemonicParsing="false" text="Choose Folder" />
-            <Label fx:id="chooseFolderLabel" layoutX="125.0" layoutY="41.0" text="Label" />
+            <Label fx:id="chooseFolderLabel" layoutX="125.0" layoutY="41.0"/>
             <TextField fx:id="maskTextField" layoutX="120.0" layoutY="266.0" prefHeight="25.0" prefWidth="113.0">
                <tooltip>
                   <Tooltip fx:id="newFileMaskToolTip" text="Empty Tooltip" />
