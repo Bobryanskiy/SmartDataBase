@@ -1,7 +1,10 @@
 package com.github.bobryanskiy.smartdb;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -15,7 +18,7 @@ public class Application extends javafx.application.Application {
         primaryStage = stage;
 
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("screen-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
+        Scene scene = new Scene(fxmlLoader.load(), 600, 400);
         stage.setTitle("Hello!");
         stage.setScene(scene);
         stage.show();
@@ -29,8 +32,26 @@ public class Application extends javafx.application.Application {
         stage.initOwner(primaryStage);
         Scene scene = new Scene(fxmlLoader.load(), 400, 300);
         stage.setScene(scene);
-        stage.showAndWait();
-        if (!ConfigureScene.comboBoxes.get(ConfigureScene.comboBoxes.size() - 1).isDisabled()) ConfigureScene.comboBoxes.get(ConfigureScene.comboBoxes.size() - 1).setValue(null);
+        stage.showAndWait();;
+        if (!ConfigureScene.comboBoxes.isEmpty()) {
+            Node node = ConfigureScene.comboBoxes.get(ConfigureScene.comboBoxes.size() - 1)[0];
+            if (node instanceof ComboBox<?> && !node.isDisabled()) {
+                ((ComboBox<?>) ConfigureScene.comboBoxes.get(ConfigureScene.comboBoxes.size() - 1)[0]).setValue(null);
+            }
+            else if (node instanceof TextField) ((TextField)node).setText("");
+            ConfigureScene.comboBoxes.forEach(n -> {
+                if (n[0] instanceof TextField && ((TextField) n[0]).getText() != null)
+                    ConfigureScene.finalString.append(((TextField)n[0]).getText());
+                else if (n[0] instanceof ComboBox<?> && ((ComboBox<?>) n[0]).getValue() != null) {
+                    ConfigureScene.finalString.append("[").append(((ComboBox<?>)n[0]).getValue()).append("]");
+                    if (n.length == 2) {
+                        ConfigureScene.finalString.append("=").append(((ComboBox<?>) n[1]).getValue());
+                    }
+                }
+                ConfigureScene.finalString.append(" ");
+            });
+            System.out.println(ConfigureScene.finalString.toString().strip());
+        }
     }
 
     public static void main(String[] args) {

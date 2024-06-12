@@ -9,7 +9,7 @@ public class DataBase {
     static String dbName;
 
     public static void connect(String user, String password) throws SQLException {
-        user = password = "bobr";
+//        user = password = "bobr";
         try {
             connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", user, password);
             statement = connection.createStatement();
@@ -56,6 +56,16 @@ public class DataBase {
             ++i;
         }
         return data;
+    }
+
+    public static ArrayList<String> getAvailableFromColumn(String tableName, String columnName) throws SQLException {
+        ResultSet resultSet = statement.executeQuery("select distinct " + columnName + " from " + tableName);
+        ArrayList<String> types = new ArrayList<>();
+        while (resultSet.next()) {
+            System.out.println(resultSet.getString(1));
+            types.add(resultSet.getString(1));
+        }
+        return types;
     }
 
     public static void close() throws SQLException {

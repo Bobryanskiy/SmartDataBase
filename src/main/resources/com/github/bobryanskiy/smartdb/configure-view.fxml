@@ -1,29 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.bobryanskiy.smartdb.ConfigureScene">
    <children>
       <ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="400.0">
         <content>
-          <AnchorPane>
+          <AnchorPane prefHeight="88.0" prefWidth="400.0">
                <children>
-                  <GridPane fx:id="gridPane" gridLinesVisible="true" layoutX="1.0" layoutY="30.0" prefHeight="100.0" prefWidth="390.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0">
+                  <GridPane fx:id="gridPane" gridLinesVisible="true" layoutX="52.0" layoutY="21.0">
                     <columnConstraints>
                       <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="10.0" prefWidth="292.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="10.0" prefWidth="287.0" />
                     </columnConstraints>
                     <rowConstraints>
                         <RowConstraints minHeight="50.0" prefHeight="50.0" vgrow="NEVER" />
@@ -32,34 +24,6 @@
                </children>
             </AnchorPane>
         </content>
-      </ScrollPane>
-      <ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="400.0">
-         <content>
-            <AnchorPane>
-               <children>
-                  <GridPane fx:id="gridPane1" gridLinesVisible="true" layoutX="1.0" layoutY="30.0" prefHeight="100.0" prefWidth="390.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0">
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="10.0" prefWidth="292.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="10.0" prefWidth="287.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="50.0" prefHeight="50.0" vgrow="NEVER" />
-                        <RowConstraints minHeight="50.0" prefHeight="50.0" vgrow="NEVER" />
-                        <RowConstraints minHeight="50.0" prefHeight="50.0" vgrow="NEVER" />
-                     </rowConstraints>
-                     <children>
-                        <ComboBox prefHeight="46.0" prefWidth="193.0" translateX="2.0" />
-                        <DatePicker editable="false" prefHeight="46.0" prefWidth="133.0" translateX="29.0" GridPane.columnIndex="1" />
-                        <TextArea prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" />
-                        <TextField prefHeight="46.0" prefWidth="195.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#addNewSetting" prefHeight="22.0" prefWidth="25.0" text="+" translateX="165.0" translateY="12.0" GridPane.columnIndex="1" />
-                        <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#addNewSetting" prefHeight="22.0" prefWidth="25.0" text="-" translateX="165.0" translateY="-12.0" GridPane.columnIndex="1" />
-                        <CheckBox mnemonicParsing="false" scaleX="1.4" scaleY="1.4" translateX="7.0" GridPane.columnIndex="1" />
-                     </children>
-                  </GridPane>
-               </children>
-            </AnchorPane>
-         </content>
       </ScrollPane>
    </children>
 </VBox>
