@@ -18,7 +18,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.bobryanskiy.smartdb.Controller">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.bobryanskiy.smartdb.Controller">
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
@@ -28,7 +28,7 @@
                   <PasswordField fx:id="passwordText" promptText="password" />
                   <Button fx:id="loginButton" mnemonicParsing="false" onAction="#onLogInButtonClick" text="Log In" />
                   <Button fx:id="logoutButton" disable="true" layoutX="328.0" layoutY="10.0" mnemonicParsing="false" onAction="#onLogOutButtonClick" text="Log Out" />
-                  <Label fx:id="welcomeText" prefHeight="25.0" prefWidth="134.0" wrapText="true" />
+                  <Label fx:id="welcomeText" prefHeight="25.0" wrapText="true" />
                </children>
                <VBox.margin>
                   <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
@@ -65,7 +65,7 @@
                </image>
             </ImageView>
             <Button fx:id="chooseFolder" layoutX="10.0" layoutY="37.0" mnemonicParsing="false" text="Choose Folder" />
-            <Label fx:id="chooseFolderLabel" layoutX="125.0" layoutY="41.0"/>
+            <Label fx:id="chooseFolderLabel" layoutX="125.0" layoutY="41.0" />
             <TextField fx:id="maskTextField" layoutX="120.0" layoutY="266.0" prefHeight="25.0" prefWidth="113.0">
                <tooltip>
                   <Tooltip fx:id="newFileMaskToolTip" text="Empty Tooltip" />
