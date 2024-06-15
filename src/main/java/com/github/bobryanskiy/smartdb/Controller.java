@@ -65,12 +65,12 @@ public class Controller extends Control {
         directoryChooser.setInitialDirectory(new File("src"));
         chooseFolder.setOnAction(e -> {
             folderPath = directoryChooser.showDialog(((Node)e.getSource()).getScene().getWindow());
-            chooseFolderLabel.setText(folderPath.toString());
+            if (folderPath != null) chooseFolderLabel.setText(folderPath.toString());
         });
         startSearchButton.setOnAction(a -> {
             if (placeToSearch.getValue() == null) startErrorLabel.setText("Выберите где искать в файле");
             else if (folderPath == null) startErrorLabel.setText("Выберите папку с файлами");
-            else if (ConfigureScene.finalString.isEmpty()) startErrorLabel.setText("Настройте конфигурацию поиска");
+            else if (ConfigureScene.finalString == null || ConfigureScene.finalString.isEmpty()) startErrorLabel.setText("Настройте конфигурацию поиска");
             else if (maskTextField.getText().isEmpty()) startErrorLabel.setText("Настройте маску файла");
             else {
                 startErrorLabel.setText("Успешно");

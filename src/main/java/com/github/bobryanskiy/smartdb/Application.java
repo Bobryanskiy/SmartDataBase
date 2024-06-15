@@ -18,7 +18,7 @@ public class Application extends javafx.application.Application {
         primaryStage = stage;
 
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("screen-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 600, 400);
+        Scene scene = new Scene(fxmlLoader.load(), 700, 400);
         stage.setTitle("Hello!");
         stage.setScene(scene);
         stage.show();
@@ -32,7 +32,7 @@ public class Application extends javafx.application.Application {
         stage.initOwner(primaryStage);
         Scene scene = new Scene(fxmlLoader.load(), 400, 300);
         stage.setScene(scene);
-        stage.showAndWait();;
+        stage.showAndWait();
         if (!ConfigureScene.comboBoxes.isEmpty()) {
             Node node = ConfigureScene.comboBoxes.get(ConfigureScene.comboBoxes.size() - 1)[0];
             if (node instanceof ComboBox<?> && !node.isDisabled()) {
