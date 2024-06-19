@@ -14,9 +14,12 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.regex.Pattern;
 
 public class Controller extends Control {
 
@@ -51,10 +54,11 @@ public class Controller extends Control {
     @FXML
     private TableView<String[]> tableView;
     public static ArrayList<String> tables;
-    public static ArrayList<String> columnsNames;
-    public static String[] columnsTypes;
+    public static LinkedHashMap<String, String> columns;
 
     private File folderPath;
+
+    public static boolean containsDependenciesFromDb;
 
     @FXML
     public void initialize() {
@@ -68,18 +72,48 @@ public class Controller extends Control {
             if (folderPath != null) chooseFolderLabel.setText(folderPath.toString());
         });
         startSearchButton.setOnAction(a -> {
+//            System.out.println(FileRenamer.getFilenameFromMask(maskTextField.getText(), columns.keySet()));
             if (placeToSearch.getValue() == null) startErrorLabel.setText("Выберите где искать в файле");
+            else if (isMaskContainsBadSymbols()) startErrorLabel.setText("Маска не должна содержать\n запрещённых символов: \\/:*?\"<>|");
             else if (folderPath == null) startErrorLabel.setText("Выберите папку с файлами");
             else if (ConfigureScene.finalString == null || ConfigureScene.finalString.isEmpty()) startErrorLabel.setText("Настройте конфигурацию поиска");
             else if (maskTextField.getText().isEmpty()) startErrorLabel.setText("Настройте маску файла");
             else {
-                startErrorLabel.setText("Успешно");
-                search();
+                try {
+                    startErrorLabel.setText(FileRenamer.fileRenamer(folderPath.getPath(), requestParser(), maskTextField.getText()));
+                } catch (FileNotFoundException | SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }
 
-    private void search() {}
+    private boolean isMaskContainsBadSymbols() {
+        return Pattern.compile("[\\\\/:*?\"<>|]").matcher(maskTextField.getText()).find();
+    }
+
+    enum RequestType{Column, ColumnWithSpecification, Word}
+
+    public record Request(RequestType type, String column, String columnType, String word){}
+
+    private Request[] requestParser() {
+        containsDependenciesFromDb = false;
+        Request[] requestPull = new Request[ConfigureScene.comboBoxes.size() - 1];
+        for (int i = 0; i < ConfigureScene.comboBoxes.size() - 1; ++i) {
+            if (ConfigureScene.comboBoxes.get(i)[0] instanceof TextField && ((TextField) ConfigureScene.comboBoxes.get(i)[0]).getText() != null) {
+                requestPull[i] = new Request(RequestType.Word, null, null, ((TextField) ConfigureScene.comboBoxes.get(i)[0]).getText());
+            }
+            else if (ConfigureScene.comboBoxes.get(i)[0] instanceof ComboBox<?> && ((ComboBox<?>) ConfigureScene.comboBoxes.get(i)[0]).getValue() != null) {
+                containsDependenciesFromDb = true;
+                if (ConfigureScene.comboBoxes.get(i).length == 2) {
+                    requestPull[i] = new Request(RequestType.ColumnWithSpecification, (String) ((ComboBox<?>) ConfigureScene.comboBoxes.get(i)[0]).getValue(), columns.get((String) ((ComboBox<?>) ConfigureScene.comboBoxes.get(i)[0]).getValue()), (String) ((ComboBox<?>)ConfigureScene.comboBoxes.get(i)[1]).getValue());
+                } else {
+                    requestPull[i] = new Request(RequestType.Column, (String) ((ComboBox<?>) ConfigureScene.comboBoxes.get(i)[0]).getValue(), columns.get((String) ((ComboBox<?>) ConfigureScene.comboBoxes.get(i)[0]).getValue()), null);
+                }
+            }
+        }
+        return requestPull;
+    }
 
     private void setToolTips() {
         newFileMaskToolTip.setText("""
@@ -119,20 +153,17 @@ public class Controller extends Control {
             welcomeText.setText("Успешно!");
 
             tables = DataBase.getTables();
-            Object[] temp = DataBase.getColumns(tables.get(0));
-            columnsNames = (ArrayList<String>) temp[0];
-            columnsTypes = (String[]) temp[1];
-            ObservableList<String[]> data = FXCollections.observableArrayList();
-            data.addAll(DataBase.getSomeData(tables.get(0), columnsNames.size()));
-            for (int i = 0; i < columnsNames.size(); i++) {
-                TableColumn<String[], String> tc = new TableColumn<>(columnsNames.get(i));
+            columns = DataBase.getColumns(tables.get(0));
+            ObservableList<String[]> columnsNamesInfo = FXCollections.observableArrayList();
+            columnsNamesInfo.addAll(DataBase.getSomeData(tables.get(0), columns.size()));
+            for (int i = 0; i < columns.size(); i++) {
+                TableColumn<String[], String> tc = new TableColumn<>((String) columns.keySet().toArray()[i]);
                 final int colNo = i;
                 tc.setCellValueFactory(p -> new SimpleStringProperty((p.getValue()[colNo])));
 //                tc.setPrefWidth(100);
                 tableView.getColumns().add(tc);
             }
-            tableView.setItems(data);
-            tableView.getColumns().forEach(k -> System.out.println(k.getText()));
+            tableView.setItems(columnsNamesInfo);
         } catch (SQLException e) {
             welcomeText.setText(e.getMessage());
         }
