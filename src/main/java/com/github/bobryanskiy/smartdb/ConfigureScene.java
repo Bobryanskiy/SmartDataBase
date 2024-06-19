@@ -50,7 +50,7 @@ public class ConfigureScene {
             addButton.setTranslateY(50 * comboBoxes.size() + 12);
             deleteButton.setTranslateY(50 * comboBoxes.size() - 12);
         } else if (available.isEmpty()){
-            available.addAll(Controller.columnsNames);
+            available.addAll(Controller.columns.keySet());
         }
         deleteButton.setDisable(settingAmount == 0);
     }

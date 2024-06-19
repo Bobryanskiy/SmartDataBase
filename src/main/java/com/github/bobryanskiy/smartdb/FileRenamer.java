@@ -1,139 +1,107 @@
 package com.github.bobryanskiy.smartdb;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
+import java.io.FileNotFoundException;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
+import java.util.*;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Arrays;
 
-public class FileRenamer {
+public abstract class FileRenamer {
 
-    static String[] mask_open(String mask, String[] columnNames)
-    {
-        String[] needed = new String[0];
-        Pattern pattern = Pattern.compile("\\[(.*?)\\]");
+    private static ArrayList<String> getFilenameFromMask(String mask, Set<String> columnNames) {
+        ArrayList<String> needed = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\[(.*?)]");
         Matcher matcher = pattern.matcher(mask);
         while (matcher.find()) {
             String replacement = matcher.group(1);
-            if (replacement.equals("filename")) {
-                continue;
-            } else {
-                for (int i = 0; i < columnNames.length; i++) {
-                    if (replacement.equals(columnNames[i])) {
-                        needed = Arrays.copyOf(needed, needed.length + 1);
-                        needed[needed.length - 1] = columnNames[i];
-                    }
-                }
+            if (columnNames.contains(replacement)) {
+                needed.add(replacement);
             }
         }
         return needed;
     }
 
-    static void FileRenamer(String folderPath, String[] columnNames, String[] userQueryColumns, String mask, Connection connection)
-    {
+    public static String fileRenamer(String folderPath, Controller.Request[] requests, String mask) throws SQLException, FileNotFoundException {
+        StringBuilder requestColumnsToDatabase = new StringBuilder("SELECT ");
+        ArrayList<String> toGet = getFilenameFromMask(mask, Controller.columns.keySet());
+        if (!Controller.containsDependenciesFromDb && !toGet.isEmpty()) {
+            return "Нет зависимостей от конфигурации в маске";
+        }
+        boolean isFirstColumn = true;
+        for (String string : toGet) {
+            if (!isFirstColumn) {
+                requestColumnsToDatabase.append(", ");
+            } else isFirstColumn = false;
+            requestColumnsToDatabase.append(string);
+        }
 
         File folder = new File(folderPath);
-        File[] files = folder.listFiles();
+        File[] files = folder.listFiles((dir, name) -> name.endsWith(".txt"));
+        if (files == null) {
+            return "В этой папке нет .txt файлов";
+        }
+        Scanner scanner;
+        boolean isOk;
+        int changedAmount = 0;
         for (File file : files) {
-            try {
-                // Чтение первой строки файла
-                List<String> lines = Files.readAllLines(Path.of(file.getPath()));
-                String[] firstLineData = lines.get(0).split(",");
-
-                String[] needed = mask_open(mask, columnNames);
-
-                // Создание запроса для поиска
-                StringBuilder query = new StringBuilder("SELECT ");
-                for (int i = 0; i < needed.length; i++) {
-                    query.append(needed[i]);
-                    if (i < needed.length - 1) {
-                        query.append(", ");
-                    }
-                }
-                query.append(" FROM table_name WHERE ");
-                for (int i = 0; i < userQueryColumns.length; i++) {
-                    query.append(userQueryColumns[i]).append(" = '").append(firstLineData[i]).append("'");
-                    if (i < userQueryColumns.length - 1) {
-                        query.append(" AND ");
-                    }
-                }
-
-                // Выполнение запроса
-                Statement statement = connection.createStatement();
-                ResultSet resultSet = statement.executeQuery(query.toString());
-
-
-                String[] data = new String[columnNames.length];
-                while (resultSet.next()) {
-                    for (int i = 0; i < columnNames.length; i++) {
-                        data[i] = resultSet.getString(columnNames[i]);
-                    }
-                }
-
-
-                String newFileName = mask;
-                Pattern pattern = Pattern.compile("\\[(.*?)\\]");
-                Matcher matcher = pattern.matcher(newFileName);
-                while (matcher.find()) {
-                    String replacement = matcher.group(1);
-                    if (replacement.equals("filename")) {
-                        newFileName = newFileName.replace("[" + replacement + "]", file.getName());
-                    } else
-                    {
-                        for (int i = 0; i < columnNames.length; i++) {
-                            if (replacement.equals(columnNames[i])) {
-                                newFileName = newFileName.replace("[" + replacement + "]", data[i]);
+            StringBuilder searchString = new StringBuilder(requestColumnsToDatabase);
+            isOk = true;
+            StringBuilder requestWhereToDatabase = new StringBuilder(" WHERE ");
+            isFirstColumn = true;
+            scanner = new Scanner(file);
+            String word;
+            fCheck:  for (Controller.Request request : requests) {
+                if (scanner.hasNext()) word = scanner.next();
+                else word = null;
+                if (word == null) break;
+                switch (request.type()) {
+                    case Word -> {
+                        String[] words = request.word().split(" ");
+                        for (String s : words) {
+                            if (!s.equals(word)) {
+                                isOk = false;
+                                break fCheck;
                             }
+                            if (scanner.hasNext()) word = scanner.next();
+                            else word = null;
                         }
                     }
+                    case Column -> {
+                        if (!isFirstColumn) {
+                            requestWhereToDatabase.append(" AND ");
+                        } else isFirstColumn = false;
+                        requestWhereToDatabase.append(request.column()).append(" = '").append(word).append("'");
+                    }
+                    case ColumnWithSpecification -> {
+                        if (!request.word().equals(word)) {
+                            isOk = false;
+                            break fCheck;
+                        }
+                        if (!isFirstColumn) {
+                            requestWhereToDatabase.append(" AND ");
+                        } else isFirstColumn = false;
+                        requestWhereToDatabase.append(request.column()).append(" = '").append(word).append("'");
+                    }
                 }
-                file.renameTo(new File(folderPath + "\\" + newFileName));
-            } catch (IOException | SQLException e) {
-                e.printStackTrace();
+            }
+            if (isOk) {
+                String newFileName = mask;
+                newFileName = newFileName.replace("[filename]", file.getName().replace(".txt", ""));
+                if (!requestWhereToDatabase.toString().equals(" WHERE ")) {
+                    ArrayList<String> arrayList = DataBase.getDataFromTable(String.valueOf(searchString.append(" FROM ").append(Controller.tables.get(0)).append(requestWhereToDatabase)), toGet.size());
+                    if (!arrayList.isEmpty()) {
+                        for (int i = 0; i < toGet.size(); ++i) {
+                            newFileName = newFileName.replace("[" + toGet.get(i) + "]", arrayList.get(i));
+                        }
+                    } else continue;
+                }
+                File toRename = new File(file.getParentFile(), newFileName);
+                scanner.close();
+                if (file.renameTo(toRename))
+                    ++changedAmount;
             }
         }
-
-        // Закрытие соединения с базой данных
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public static void main(String[] args) {
-
-
-        String folderPath = "C:\\path\\to\\folder";
-
-
-        String[] columnNames = {"name", "age", "city"};
-
-
-        String[] userQueryColumns = {"name", "age"};
-
-
-        String mask = "[name]_[filename]";
-
-
-        String connectionUrl = "jdbc:mysql://localhost:3306/database_name";
-        String username = "username";
-        String password = "password";
-        Connection connection = null;
-        try {
-            connection = DriverManager.getConnection(connectionUrl, username, password);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        FileRenamer(folderPath, columnNames, userQueryColumns, mask, connection);
+        return "Успешно изменено " + changedAmount + " файлов";
     }
 }
